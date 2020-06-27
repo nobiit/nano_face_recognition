@@ -1,10 +1,10 @@
-import pickle
-import platform
-from datetime import datetime, timedelta
-
+# Chứa những hàm trợ giúp việc phân tích khuôn mặt
 import cv2
 import face_recognition
 import numpy as np
+import pickle
+import platform
+from datetime import datetime, timedelta
 
 # Our list of known face encodings and a matching list of metadata about each face.
 
@@ -12,6 +12,7 @@ known_face_encodings = []
 known_face_metadata = []
 
 
+# Lưu lại khuôn mặt
 def save_known_faces():
     from run import Guest
     with open('%s/known_faces.dat' % Guest.DATA_DIR, 'wb') as face_data_file:
@@ -20,6 +21,7 @@ def save_known_faces():
         print('Known faces backed up to disk.')
 
 
+# Load khuôn mặt
 def load_known_faces():
     global known_face_encodings, known_face_metadata
 
@@ -33,6 +35,7 @@ def load_known_faces():
         pass
 
 
+# Có phải đang chạy trên Nano
 def running_on_jetson_nano():
     # To make the same code work on a laptop or on a Jetson Nano, we'll detect when we are running on the Nano
     # so that we can access the camera correctly in that case.
@@ -40,20 +43,22 @@ def running_on_jetson_nano():
     return platform.machine() == 'aarch64'
 
 
+# Lấy luồn stream camera trên Nano
 def get_jetson_gstreamer_source(capture_width=1280, capture_height=720, display_width=1280, display_height=720, framerate=60, flip_method=0):
     '''
     Return an OpenCV-compatible video source description that uses gstreamer to capture video from the camera on a Jetson Nano
     '''
     return (
-        f'nvarguscamerasrc ! video/x-raw(memory:NVMM), ' +
-        f'width=(int){capture_width}, height=(int){capture_height}, ' +
-        f'format=(string)NV12, framerate=(fraction){framerate}/1 ! ' +
-        f'nvvidconv flip-method={flip_method} ! ' +
-        f'video/x-raw, width=(int){display_width}, height=(int){display_height}, format=(string)BGRx ! ' +
-        'videoconvert ! video/x-raw, format=(string)BGR ! appsink'
+            f'nvarguscamerasrc ! video/x-raw(memory:NVMM), ' +
+            f'width=(int){capture_width}, height=(int){capture_height}, ' +
+            f'format=(string)NV12, framerate=(fraction){framerate}/1 ! ' +
+            f'nvvidconv flip-method={flip_method} ! ' +
+            f'video/x-raw, width=(int){display_width}, height=(int){display_height}, format=(string)BGRx ! ' +
+            'videoconvert ! video/x-raw, format=(string)BGR ! appsink'
     )
 
 
+# Tạo khuôn mặt mới và dữ liệu
 def register_new_face(face_encoding, face_image):
     '''
     Add a new person to our list of known faces
@@ -76,6 +81,7 @@ def register_new_face(face_encoding, face_image):
     return known_face_metadata[len(known_face_metadata) - 1]
 
 
+# Tìm kiếm khuôn mặt
 def lookup_known_face(face_encoding):
     '''
     See if this is a face we already have in our face list
@@ -118,6 +124,7 @@ def lookup_known_face(face_encoding):
     return metadata
 
 
+# Xác định các khuôn mặt trong camera
 def main_loop():
     # Get access to the webcam. The method is different depending on if this is running on a laptop or a Jetson Nano.
     if running_on_jetson_nano():
