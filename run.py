@@ -510,7 +510,7 @@ if __name__ == '__main__':
             # Tải file
             res = get(command)
             # Mở file test
-            with open(self.TEST_FILE, 'wb') as f:
+            with open(NanoFaceDetection.TEST_FILE, 'wb') as f:
                 # Lưu file vào file test
                 f.write(res.content)
                 # Đóng file
